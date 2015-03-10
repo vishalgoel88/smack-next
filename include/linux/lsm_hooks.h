@@ -32,8 +32,6 @@
 #ifdef CONFIG_SECURITY
 
 /**
- * struct security_operations - main security structure
- *
  * Security module identifier.
  *
  * @name:
@@ -1314,9 +1312,7 @@
  * This is the main security structure.
  */
 
-struct security_operations {
-	char name[SECURITY_NAME_MAX + 1];
-
+union security_list_options {
 	int (*binder_set_context_mgr)(struct task_struct *mgr);
 	int (*binder_transaction)(struct task_struct *from,
 					struct task_struct *to);
@@ -1843,19 +1839,32 @@ struct security_hook_heads {
 };
 
 /*
+ * Security module hook list structure.
+ * For use with generic list macros for common operations.
+ */
+struct security_hook_list {
+	struct list_head		list;
+	struct list_head		*head;
+	union security_list_options	hook;
+};
+
+/*
  * Initializing a security_hook_list structure takes
  * up a lot of space in a source file. This macro takes
  * care of the common case and reduces the amount of
  * text involved.
- * Casey says: Comment is true in the next patch.
  */
-#define LSM_HOOK_INIT(HEAD, HOOK)	.HEAD = HOOK
+#define LSM_HOOK_INIT(HEAD, HOOK) \
+	{ .head = &security_hook_heads.HEAD, .hook = { .HEAD = HOOK } }
+
+extern struct security_hook_heads security_hook_heads;
 
 /* prototypes */
-extern int security_module_enable(struct security_operations *ops);
-extern int register_security(struct security_operations *ops);
-extern void __init security_fixup_ops(struct security_operations *ops);
-extern void reset_security_ops(void);
+extern int security_module_enable(const char *module);
+extern void security_add_hooks(struct security_hook_list *hooks, int count);
+#ifdef CONFIG_SECURITY_SELINUX_DISABLE
+extern void security_delete_hooks(struct security_hook_list *hooks, int count);
+#endif
 
 #endif /* CONFIG_SECURITY */
 
