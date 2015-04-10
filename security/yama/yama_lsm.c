@@ -353,7 +353,7 @@ static struct security_hook_list yama_hooks[] = {
 	LSM_HOOK_INIT(task_free, yama_task_free),
 };
 
-void yama_add_hooks(void)
+void __init yama_add_hooks(void)
 {
 	security_add_hooks(yama_hooks, ARRAY_SIZE(yama_hooks));
 }

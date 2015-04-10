@@ -29,6 +29,9 @@
 
 #define MAX_LSM_EVM_XATTR	2
 
+/* Maximum number of letters for an LSM name string */
+#define SECURITY_NAME_MAX	10
+
 /* Boot-time LSM user choice */
 static __initdata char chosen_lsm[SECURITY_NAME_MAX + 1] =
 	CONFIG_DEFAULT_SECURITY;
@@ -1888,28 +1891,3 @@ struct security_hook_heads security_hook_heads = {
 		LIST_HEAD_INIT(security_hook_heads.audit_rule_free),
 #endif /* CONFIG_AUDIT */
 };
-
-void security_add_hooks(struct security_hook_list *hooks, int count)
-{
-	struct security_hook_list *shp;
-	int i;
-
-	for (i = 0; i < count; i++) {
-		INIT_LIST_HEAD(&hooks[i].list);
-		shp = list_last_entry(hooks[i].head,
-					struct security_hook_list, list);
-		list_add_rcu(&hooks[i].list, &shp->list);
-	}
-}
-
-#ifdef CONFIG_SECURITY_SELINUX_DISABLE
-
-void security_delete_hooks(struct security_hook_list *hooks, int count)
-{
-	int i;
-
-	for (i = 0; i < count; i++)
-		list_del_rcu(&hooks[i].list);
-}
-
-#endif /* CONFIG_SECURITY_SELINUX_DISABLE */

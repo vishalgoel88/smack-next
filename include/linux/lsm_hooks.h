@@ -25,19 +25,10 @@
 #define __LINUX_LSM_HOOKS_H
 
 #include <linux/security.h>
-
-/* Maximum number of letters for an LSM name string */
-#define SECURITY_NAME_MAX	10
-
-#ifdef CONFIG_SECURITY
+#include <linux/init.h>
+#include <linux/rculist.h>
 
 /**
- * Security module identifier.
- *
- * @name:
- *	A string that acts as a unique identifier for the LSM with max number
- *	of characters = SECURITY_NAME_MAX.
- *
  * Security hooks for program execution operations.
  *
  * @bprm_set_creds:
@@ -1859,14 +1850,42 @@ struct security_hook_list {
 
 extern struct security_hook_heads security_hook_heads;
 
-/* prototypes */
-extern int security_module_enable(const char *module);
-extern void security_add_hooks(struct security_hook_list *hooks, int count);
+static inline void security_add_hooks(struct security_hook_list *hooks,
+				      int count)
+{
+	int i;
+
+	for (i = 0; i < count; i++)
+		list_add_tail_rcu(&hooks[i].list, hooks[i].head);
+}
+
 #ifdef CONFIG_SECURITY_SELINUX_DISABLE
-extern void security_delete_hooks(struct security_hook_list *hooks, int count);
+/*
+ * Assuring the safety of deleting a security module is up to
+ * the security module involved. This may entail ordering the
+ * module's hook list in a particular way, refusing to disable
+ * the module once a policy is loaded or any number of other
+ * actions better imagined than described.
+ *
+ * The name of the configuration option reflects the only module
+ * that currently uses the mechanism. Any developer who thinks
+ * disabling their module is a good idea needs to be at least as
+ * careful as the SELinux team.
+ */
+static inline void security_delete_hooks(struct security_hook_list *hooks,
+						int count)
+{
+	int i;
+
+	for (i = 0; i < count; i++)
+		list_del_rcu(&hooks[i].list);
+}
+#endif /* CONFIG_SECURITY_SELINUX_DISABLE */
+
+extern int __init security_module_enable(const char *module);
+extern void __init capability_add_hooks(void);
+#ifdef CONFIG_SECURITY_YAMA_STACKED
+void __init yama_add_hooks(void);
 #endif
 
-#endif /* CONFIG_SECURITY */
-
 #endif /* ! __LINUX_LSM_HOOKS_H */
-

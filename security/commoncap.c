@@ -53,11 +53,6 @@ static void warn_setuid_and_fcaps_mixed(const char *fname)
 	}
 }
 
-int cap_netlink_send(struct sock *sk, struct sk_buff *skb)
-{
-	return 0;
-}
-
 /**
  * cap_capable - Determine whether a task has a particular effective capability
  * @cred: The credentials to use
@@ -1005,7 +1000,7 @@ struct security_hook_list capability_hooks[] = {
 	LSM_HOOK_INIT(vm_enough_memory, cap_vm_enough_memory),
 };
 
-void capability_add_hooks(void)
+void __init capability_add_hooks(void)
 {
 	security_add_hooks(capability_hooks, ARRAY_SIZE(capability_hooks));
 }

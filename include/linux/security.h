@@ -55,9 +55,6 @@ struct xattr;
 struct xfrm_sec_ctx;
 struct mm_struct;
 
-/* Maximum number of letters for an LSM name string */
-#define SECURITY_NAME_MAX	10
-
 /* If capable should audit the security request */
 #define SECURITY_CAP_NOAUDIT 0
 #define SECURITY_CAP_AUDIT 1
@@ -70,10 +67,7 @@ struct audit_krule;
 struct user_namespace;
 struct timezone;
 
-/*
- * These functions are in security/capability.c and are used
- * as the default capabilities functions
- */
+/* These functions are in security/commoncap.c */
 extern int cap_capable(const struct cred *cred, struct user_namespace *ns,
 		       int cap, int audit);
 extern int cap_settime(const struct timespec *ts, const struct timezone *tz);
@@ -101,7 +95,6 @@ extern int cap_task_setscheduler(struct task_struct *p);
 extern int cap_task_setioprio(struct task_struct *p, int ioprio);
 extern int cap_task_setnice(struct task_struct *p, int nice);
 extern int cap_vm_enough_memory(struct mm_struct *mm, long pages);
-extern void capability_add_hooks(void);
 
 struct msghdr;
 struct sk_buff;
@@ -115,8 +108,6 @@ struct xfrm_policy;
 struct xfrm_state;
 struct xfrm_user_sec_ctx;
 struct seq_file;
-
-extern int cap_netlink_send(struct sock *sk, struct sk_buff *skb);
 
 #ifdef CONFIG_MMU
 extern unsigned long mmap_min_addr;
@@ -1078,7 +1069,7 @@ static inline int security_setprocattr(struct task_struct *p, char *name, void *
 
 static inline int security_netlink_send(struct sock *sk, struct sk_buff *skb)
 {
-	return cap_netlink_send(sk, skb);
+	return 0;
 }
 
 static inline int security_ismaclabel(const char *name)
@@ -1652,10 +1643,6 @@ static inline char *alloc_secdata(void)
 static inline void free_secdata(void *secdata)
 { }
 #endif /* CONFIG_SECURITY */
-
-#ifdef CONFIG_SECURITY_YAMA_STACKED
-void yama_add_hooks(void);
-#endif
 
 #endif /* ! __LINUX_SECURITY_H */
 
