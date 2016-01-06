@@ -935,7 +935,8 @@ static ssize_t smk_set_cipso(struct file *file, const char __user *buf,
 
 		smack_catset_bit(cat, mapcatset);
 	}
-
+	memset(&ncats, 0, sizeof(ncats));
+	
 	rc = smk_netlbl_mls(maplevel, mapcatset, &ncats, SMK_CIPSOLEN);
 	if (rc >= 0) {
 		netlbl_catmap_free(skp->smk_netlabel.attr.mls.cat);
